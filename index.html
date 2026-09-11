@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Sterope — tủ sách PDF chạy ngoại tuyến cho macOS và Windows.">
+<title>Sterope</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ink: #0f1a24;
+    --ink-soft: #41586b;
+    --paper: #e9edf1;
+    --panel: #f8fafb;
+    --rule: #c6d0d8;
+    --rule-soft: #dbe3e9;
+    --marker: #e8c24a;
+    --blue: #1f5c8b;
+    --blue-soft: #e2ecf4;
+
+    --display: "Bricolage Grotesque", "Trebuchet MS", sans-serif;
+    --body: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    --measure: 64ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #dde5ec;
+      --ink-soft: #93a7b8;
+      --paper: #0d151d;
+      --panel: #15202b;
+      --rule: #2c3d4c;
+      --rule-soft: #223140;
+      --marker: #f0cf63;
+      --blue: #7fb4dc;
+      --blue-soft: #1a2a38;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #dde5ec;
+    --ink-soft: #93a7b8;
+    --paper: #0d151d;
+    --panel: #15202b;
+    --rule: #2c3d4c;
+    --rule-soft: #223140;
+    --marker: #f0cf63;
+    --blue: #7fb4dc;
+    --blue-soft: #1a2a38;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding-inline: 24px;
+    padding-block: 32px 72px;
+  }
+
+  /* ---- language switch ---- */
+  .lang {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-bottom: 28px;
+  }
+
+  .lang button {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1px solid var(--rule-soft);
+    padding: 6px 11px;
+    cursor: pointer;
+  }
+  .lang button[aria-pressed="true"] {
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+  .lang button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  /* ---- catalog records ---- */
+  .rec {
+    display: grid;
+    grid-template-columns: 108px minmax(0, 1fr);
+    gap: 0 28px;
+    border-top: 1px solid var(--rule-soft);
+    padding-block: 28px;
+  }
+  .rec:last-of-type { border-bottom: 1px solid var(--rule-soft); }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding-top: 6px;
+  }
+
+  .rec h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 21px;
+    line-height: 1.25;
+    letter-spacing: -0.012em;
+    margin: 0 0 8px;
+    text-wrap: balance;
+  }
+
+  .rec p { margin: 0; max-width: var(--measure); }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.84em;
+    background: var(--blue-soft);
+    padding: 1px 5px;
+    word-break: break-all;
+  }
+
+  /* ---- hero ---- */
+  header { margin-bottom: 44px; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 18px;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(52px, 12vw, 88px);
+    line-height: 0.92;
+    letter-spacing: -0.035em;
+    margin: 0 0 14px;
+  }
+
+  .lede {
+    font-size: clamp(19px, 2.4vw, 23px);
+    line-height: 1.45;
+    max-width: 32ch;
+    margin: 0 0 28px;
+    color: var(--ink);
+  }
+
+  /* ---- the glyph repair: this app's most characteristic moment ---- */
+  .repair {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+
+  .repair-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 32px;
+  }
+
+  .side + .side {
+    border-left: 1px solid var(--rule-soft);
+    padding-left: 32px;
+  }
+
+  .side-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 8px;
+  }
+
+  .repair-line {
+    font-family: var(--body);
+    font-size: clamp(24px, 5.2vw, 38px);
+    line-height: 1.2;
+    margin: 0;
+    word-break: break-word;
+  }
+
+  .repair-line.broken { color: var(--ink-soft); }
+
+  .glyph {
+    background-image: linear-gradient(
+      to top,
+      color-mix(in srgb, var(--marker) 70%, transparent) 0,
+      color-mix(in srgb, var(--marker) 70%, transparent) 0.16em,
+      transparent 0.16em
+    );
+    padding-inline: 0.04em;
+  }
+
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; }
+
+  .btn {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.005em;
+    text-decoration: none;
+    padding: 12px 20px;
+    border: 1px solid var(--ink);
+    color: var(--paper);
+    background: var(--ink);
+    transition: opacity 160ms ease;
+  }
+  .btn:hover { opacity: 0.86; }
+  .btn.ghost { background: transparent; color: var(--ink); }
+  .btn.ghost:hover { background: var(--blue-soft); }
+  .btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  /* ---- downloads ---- */
+  .dl-head {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: -0.02em;
+    margin: 56px 0 6px;
+  }
+  .dl-note a { color: var(--blue); text-underline-offset: 3px; }
+  .dl-note { color: var(--ink-soft); margin: 0 0 20px; max-width: var(--measure); font-size: 15px; }
+
+  .files { border-top: 1px solid var(--rule); }
+
+  .file {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 20px;
+    align-items: baseline;
+    border-bottom: 1px solid var(--rule-soft);
+    padding-block: 14px;
+  }
+
+  .file-name a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--rule);
+    text-underline-offset: 3px;
+  }
+  .file-name a:hover { color: var(--blue); text-decoration-color: var(--blue); }
+  .file-name a:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  .file-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    word-break: break-all;
+    color: var(--ink);
+  }
+  .file-for { font-size: 14px; color: var(--ink-soft); }
+  .file-size {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .file-sum {
+    line-height: 1.6;
+    grid-column: 1 / -1;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    word-break: break-all;
+  }
+
+  footer {
+    margin-top: 52px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.9;
+    color: var(--ink-soft);
+  }
+  footer b { color: var(--ink); font-weight: 500; }
+
+  @media (max-width: 620px) {
+    .rec { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+    .repair-pair { grid-template-columns: minmax(0, 1fr); }
+    .side + .side { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule-soft); padding-top: 20px; }
+    .tag { padding-top: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+<style>
+  body { margin: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <div class="lang">
+    <button type="button" id="btn-vi" aria-pressed="true">VI</button>
+    <button type="button" id="btn-en" aria-pressed="false">EN</button>
+  </div>
+
+  <!-- ============ Tiếng Việt ============ -->
+  <div id="vi" lang="vi">
+    <header>
+      <p class="eyebrow">Bản 0.1.0 · macOS Apple Silicon · Windows x64</p>
+      <h1>Sterope</h1>
+      <p class="lede">Tủ sách PDF chạy trên máy bạn. Không tài khoản, không đồng bộ, không ai đọc cùng.</p>
+
+      <div class="repair">
+        <div class="repair-pair">
+          <div class="side">
+            <p class="side-label">PDF đọc ra</p>
+            <p class="repair-line broken">Cöûu Long</p>
+          </div>
+          <div class="side">
+            <p class="side-label">Sterope sửa lại</p>
+            <p class="repair-line">C<span class="glyph">ử</span>u Long</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta">
+        <a class="btn" href="https://github.com/nvxtien/sterope-releases/releases/latest/download/Sterope_0.1.0_aarch64.dmg">Tải cho macOS</a>
+        <a class="btn ghost" href="https://github.com/nvxtien/sterope-releases/releases/latest/download/Sterope_0.1.0_x64-setup.exe">Tải cho Windows</a>
+      </div>
+    </header>
+
+    <section class="rec">
+      <p class="tag">Tủ sách</p>
+      <div>
+        <h2>Tên sách do bạn đặt</h2>
+        <p>Kệ sách gồm bìa, bộ sưu tập, lọc, và xếp theo lần đọc gần nhất.</p>
+      </div>
+    </section>
+
+    <section class="rec">
+      <p class="tag">Đọc</p>
+      <div>
+        <h2>Mở lại trang đọc giữa chừng</h2>
+        <p>Thông tin về tiến độ, thời gian đọc và chuỗi ngày đọc liên tiếp.</p>
+      </div>
+    </section>
+
+    <section class="rec">
+      <p class="tag">Ghi chú</p>
+      <div>
+        <h2>Highlight thành ghi chú, ghi chú thành Markdown</h2>
+        <p>Bôi một đoạn, gắn thẻ, nó sẽ lưu trong ghi chú của cuốn sách. “Copy with source” chép kèm nguồn để dán sang chỗ khác mà không mất dấu vết. Xoá sách thì ghi chú được ghi ra tệp trước.</p>
+      </div>
+    </section>
+
+    <section class="rec">
+      <p class="tag">Tìm kiếm</p>
+      <div>
+        <h2>Tìm khắp thư viện</h2>
+        <p>Chứ không riêng gì trong một cuốn sách.</p>
+      </div>
+    </section>
+
+    <section class="rec">
+      <p class="tag">Trích dẫn</p>
+      <div>
+        <h2>Tra DOI, dựng trích dẫn</h2>
+        <p>Dán DOI vào, Sterope hỏi Crossref và DataCite rồi dựng trích dẫn cho cuốn sách. Đây là hai địa chỉ duy nhất app được phép gọi ra ngoài, khai thẳng trong CSP; ngoài chúng ra thì không có đường mạng nào khác.</p>
+      </div>
+    </section>
+
+    <h2 class="dl-head" id="tai-ve">Tải về</h2>
+    <p class="dl-note">Tệp nằm ở <a href="https://github.com/nvxtien/sterope-releases/releases/latest">sterope-releases</a> trên GitHub. Kiểm tra checksum trước khi cài nếu bạn lấy tệp từ chỗ khác.</p>
+
+    <div class="files">
+      <div class="file">
+        <div>
+          <div class="file-name"><a href="https://github.com/nvxtien/sterope-releases/releases/latest/download/Sterope_0.1.0_aarch64.dmg">Sterope_0.1.0_aarch64.dmg</a></div>
+          <div class="file-for">macOS · Apple Silicon · <code>aarch64-apple-darwin</code></div>
+        </div>
+        <div class="file-size">4.4 MB</div>
+        <div class="file-sum">sha256 081e29755837352c846cf2de4a6ad6e0c86a02478fd56ce90b8f1e856971d166</div>
+      </div>
+
+      <div class="file">
+        <div>
+          <div class="file-name"><a href="https://github.com/nvxtien/sterope-releases/releases/latest/download/Sterope_0.1.0_x64-setup.exe">Sterope_0.1.0_x64-setup.exe</a></div>
+          <div class="file-for">Windows 10/11 · cài không cần quyền Admin</div>
+        </div>
+        <div class="file-size">3.2 MB</div>
+        <div class="file-sum">sha256 b376ca88ae701f6668e131ac4426e7b48bd0fec0ad07f6df0fb940346b704d7e</div>
+      </div>
+
+      <div class="file">
+        <div>
+          <div class="file-name"><a href="https://github.com/nvxtien/sterope-releases/releases/latest/download/Sterope_0.1.0_x64_en-US.msi">Sterope_0.1.0_x64_en-US.msi</a></div>
+          <div class="file-for">Windows · cho Intune, SCCM, Group Policy</div>
+        </div>
+        <div class="file-size">4.5 MB</div>
+        <div class="file-sum">sha256 4a604a8bfa781f159abffc698e4a4e5c875b6e6dad1f1962eead50371630f154</div>
+      </div>
+
+      <div class="file">
+        <div>
+          <div class="file-name"><a href="https://github.com/nvxtien/sterope-releases/releases/latest/download/sterope.exe">sterope.exe</a></div>
+          <div class="file-for">Windows · chạy thẳng, không cài, không tự cập nhật</div>
+        </div>
+        <div class="file-size">12.5 MB</div>
+        <div class="file-sum">sha256 6c404dab3fa001f2c8572bdd9a6b590217663718fb51ccbfd11f226fe2386c14</div>
+      </div>
+    </div>
+
+    <footer>
+      <div><b>com.tiennv.pdfbooks</b> · Tauri 2 · React 19 · rusqlite · pdfjs-dist 5.6.205</div>
+      <div>Thư viện nằm trong SQLite trên máy bạn. Không tài khoản, không telemetry.</div>
+      <div>© 2026 Tien Nguyen</div>
+    </footer>
+  </div>
+
+  <!-- ============ English ============ -->
+  <div id="en" lang="en" hidden>
+    <header>
+      <p class="eyebrow">Version 0.1.0 · macOS Apple Silicon · Windows x64</p>
+      <h1>Sterope</h1>
+      <p class="lede">A PDF shelf that stays on your own machine. No account, no sync, nobody reading over your shoulder.</p>
+
+      <div class="repair">
+        <div class="repair-pair">
+          <div class="side">
+            <p class="side-label">What the PDF reads as</p>
+            <p class="repair-line broken">Cöûu Long</p>
+          </div>
+          <div class="side">
+            <p class="side-label">What Sterope shows</p>
+            <p class="repair-line">C<span class="glyph">ử</span>u Long</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta">
+        <a class="btn" href="https://github.com/nvxtien/sterope-releases/releases/latest/download/Sterope_0.1.0_aarch64.dmg">Download for macOS</a>
+        <a class="btn ghost" href="https://github.com/nvxtien/sterope-releases/releases/latest/download/Sterope_0.1.0_x64-setup.exe">Download for Windows</a>
+      </div>
+    </header>
+
+    <section class="rec">
+      <p class="tag">Library</p>
+      <div>
+        <h2>You name the books</h2>
+        <p>The shelf carries covers, collections, filters, and sorting by what you read last.</p>
+      </div>
+    </section>
+
+    <section class="rec">
+      <p class="tag">Reading</p>
+      <div>
+        <h2>Reopen the page you stopped on</h2>
+        <p>Progress, time spent reading, and the run of days you kept it up.</p>
+      </div>
+    </section>
+
+    <section class="rec">
+      <p class="tag">Notes</p>
+      <div>
+        <h2>Highlights become notes, notes become Markdown</h2>
+        <p>Select a passage, tag it, and it lands in that book’s notes. “Copy with source” carries the citation along when you paste elsewhere. Deleting a book writes the notes out to a file first.</p>
+      </div>
+    </section>
+
+    <section class="rec">
+      <p class="tag">Search</p>
+      <div>
+        <h2>Search the whole library</h2>
+        <p>Not only the book you have open.</p>
+      </div>
+    </section>
+
+    <section class="rec">
+      <p class="tag">Citations</p>
+      <div>
+        <h2>Look up a DOI, build the citation</h2>
+        <p>Paste a DOI and Sterope asks Crossref and DataCite, then builds the citation for that book. Those are the only two addresses the app may reach — the CSP names them, and nothing else gets a route out.</p>
+      </div>
+    </section>
+
+    <h2 class="dl-head" id="download">Download</h2>
+    <p class="dl-note">Files live in <a href="https://github.com/nvxtien/sterope-releases/releases/latest">sterope-releases</a> on GitHub. Check the checksum first if you got the file anywhere else.</p>
+
+    <div class="files">
+      <div class="file">
+        <div>
+          <div class="file-name"><a href="https://github.com/nvxtien/sterope-releases/releases/latest/download/Sterope_0.1.0_aarch64.dmg">Sterope_0.1.0_aarch64.dmg</a></div>
+          <div class="file-for">macOS · Apple Silicon · <code>aarch64-apple-darwin</code></div>
+        </div>
+        <div class="file-size">4.4 MB</div>
+        <div class="file-sum">sha256 081e29755837352c846cf2de4a6ad6e0c86a02478fd56ce90b8f1e856971d166</div>
+      </div>
+
+      <div class="file">
+        <div>
+          <div class="file-name"><a href="https://github.com/nvxtien/sterope-releases/releases/latest/download/Sterope_0.1.0_x64-setup.exe">Sterope_0.1.0_x64-setup.exe</a></div>
+          <div class="file-for">Windows 10/11 · installs without admin rights</div>
+        </div>
+        <div class="file-size">3.2 MB</div>
+        <div class="file-sum">sha256 b376ca88ae701f6668e131ac4426e7b48bd0fec0ad07f6df0fb940346b704d7e</div>
+      </div>
+
+      <div class="file">
+        <div>
+          <div class="file-name"><a href="https://github.com/nvxtien/sterope-releases/releases/latest/download/Sterope_0.1.0_x64_en-US.msi">Sterope_0.1.0_x64_en-US.msi</a></div>
+          <div class="file-for">Windows · for Intune, SCCM, Group Policy</div>
+        </div>
+        <div class="file-size">4.5 MB</div>
+        <div class="file-sum">sha256 4a604a8bfa781f159abffc698e4a4e5c875b6e6dad1f1962eead50371630f154</div>
+      </div>
+
+      <div class="file">
+        <div>
+          <div class="file-name"><a href="https://github.com/nvxtien/sterope-releases/releases/latest/download/sterope.exe">sterope.exe</a></div>
+          <div class="file-for">Windows · portable, no installer, no auto-update</div>
+        </div>
+        <div class="file-size">12.5 MB</div>
+        <div class="file-sum">sha256 6c404dab3fa001f2c8572bdd9a6b590217663718fb51ccbfd11f226fe2386c14</div>
+      </div>
+    </div>
+
+    <footer>
+      <div><b>com.tiennv.pdfbooks</b> · Tauri 2 · React 19 · rusqlite · pdfjs-dist 5.6.205</div>
+      <div>The library is a SQLite file on your machine. No account, no telemetry.</div>
+      <div>© 2026 Tien Nguyen</div>
+    </footer>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var vi = document.getElementById("vi");
+    var en = document.getElementById("en");
+    var bvi = document.getElementById("btn-vi");
+    var ben = document.getElementById("btn-en");
+
+    function show(lang) {
+      var english = lang === "en";
+      en.hidden = !english;
+      vi.hidden = english;
+      ben.setAttribute("aria-pressed", String(english));
+      bvi.setAttribute("aria-pressed", String(!english));
+      try { localStorage.setItem("sterope-lang", lang); } catch (e) {}
+    }
+
+    bvi.addEventListener("click", function () { show("vi"); });
+    ben.addEventListener("click", function () { show("en"); });
+
+    try {
+      var saved = localStorage.getItem("sterope-lang");
+      if (saved === "en") show("en");
+    } catch (e) {}
+  })();
+</script>
+
+</body>
+</html>
