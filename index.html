@@ -11,14 +11,14 @@
 /* Light only, on purpose. */
 :root{
   color-scheme:light;
-  --paper:#EDEAE3;
-  --surface:#F7F5EE;
-  --ink:#20241F;
-  --ink-soft:#4A4E44;
-  --line:#C9C4AE;
-  --accent:#4B3B76;
-  --leather:#8B6B3D;
-  --stamp:#7A3B3B;
+  --paper:#FBF9F3;
+  --surface:#FFFFFF;
+  --ink:#14161A;
+  --ink-soft:#3F4339;
+  --line:#D3CBB2;
+  --accent:#5B34D1;
+  --leather:#9C5A12;
+  --stamp:#B3261E;
 }
 
 *{box-sizing:border-box;}
@@ -37,7 +37,7 @@ a{color:var(--accent);}
 a:focus-visible, button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 code{font-family:'IBM Plex Mono', ui-monospace, monospace; font-size:.85em;}
 
-.wrap{max-width:920px; margin:0 auto;}
+.wrap{max-width:1000px; margin:0 auto;}
 
 /* ---- header / catalog rail ---- */
 header.top{
@@ -61,11 +61,12 @@ nav.top-links a:hover{color:var(--accent);}
 .lang button[aria-pressed="true"]{color:var(--ink); border-color:var(--ink);}
 
 /* ---- hero ---- */
+/* One column: the screenshot gets the full width under the words, where it can be read. */
 .hero{
-  display:grid; grid-template-columns:minmax(0, 1.1fr) minmax(0, 1fr); gap:48px;
-  padding:56px 0 48px; align-items:center;
+  display:grid; grid-template-columns:minmax(0, 1fr); gap:40px;
+  padding:56px 0 48px;
 }
-@media (max-width:720px){ .hero{grid-template-columns:minmax(0, 1fr); padding:36px 0;} }
+@media (max-width:720px){ .hero{padding:36px 0;} }
 
 .eyebrow{
   font-family:'IBM Plex Mono', monospace; font-size:.75rem; letter-spacing:.14em;
@@ -86,9 +87,9 @@ h1.headline{font-size:clamp(2.2rem, 4.2vw, 3.1rem); line-height:1.12; letter-spa
   padding:12px 20px; border-radius:3px; text-decoration:none;
   display:inline-flex; align-items:center; gap:9px; border:1px solid transparent;
 }
-.btn-primary{background:var(--ink); color:var(--paper);}
+.btn-primary{background:var(--accent); color:var(--surface);}
 .btn-ghost{border-color:var(--line); color:var(--ink);}
-.btn small{opacity:.65; font-weight:400; font-family:'IBM Plex Mono',monospace; font-size:.78em;}
+.btn small{opacity:.8; font-weight:400; font-family:'IBM Plex Mono',monospace; font-size:.78em;}
 
 /* ---- framed plates: the screenshot, and the glyph repair ---- */
 .scan-frame{
@@ -111,7 +112,10 @@ h1.headline{font-size:clamp(2.2rem, 4.2vw, 3.1rem); line-height:1.12; letter-spa
   width:100%;
   max-width:100%;
   border:1px solid var(--line);
-  border-radius:2px;
+  /* The capture is a macOS window: transparent corners edged by a dark antialiased arc that
+     runs about 19px along each side of the image. 2.1% / 2.8% is a 27px image radius at any
+     width, which clips all of it. */
+  border-radius:2.1% / 2.8%;
 }
 
 .repair{margin:0 0 52px;}
